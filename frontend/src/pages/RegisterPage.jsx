@@ -31,7 +31,12 @@ export default function RegisterPage() {
       if (r?.challengeId) {
         setChallengeId(r.challengeId);
         setStep(2);
-        setMsg("Verification code sent to your email. Enter it to continue.");
+        // Show debug OTP if available (when SMTP is not configured)
+        if (r.debugOtp) {
+          setMsg(`Verification code: ${r.debugOtp} (Email delivery skipped)`);
+        } else {
+          setMsg("Verification code sent to your email. Enter it to continue.");
+        }
       } else {
         setMsg("Registered. You can now login.");
       }

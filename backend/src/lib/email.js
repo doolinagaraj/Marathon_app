@@ -50,7 +50,8 @@ export async function sendEmail({ to, subject, html }) {
       console.log("⚠️  Email failed but you can use this code manually");
       console.log("=".repeat(60));
     }
-    throw error;
+    // Don't throw error - return skipped so registration can continue with debugOtp
+    return { skipped: true, error: error.message };
   }
 }
 
