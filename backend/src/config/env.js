@@ -11,6 +11,11 @@ function required(name) {
 const defaultFrontendOrigin =
   process.env.NODE_ENV === "production" ? "https://doolinagaraj.github.io" : "http://localhost:5173";
 
+const parsedFrontendOrigins = (process.env.FRONTEND_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: Number(process.env.PORT ?? 4000),
@@ -18,6 +23,7 @@ export const env = {
   jwtSecret: required("JWT_SECRET"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "7d",
   frontendOrigin: process.env.FRONTEND_ORIGIN ?? defaultFrontendOrigin,
+  frontendOrigins: parsedFrontendOrigins,
   bootstrapAdminEmail: process.env.BOOTSTRAP_ADMIN_EMAIL ?? "",
   // Optional seed admin user (created/updated on boot if set)
   adminSeed: {
