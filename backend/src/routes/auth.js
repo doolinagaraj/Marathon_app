@@ -165,8 +165,8 @@ authRouter.post("/login", async (req, res) => {
   });
 });
 
-// Separate admin login (2-step): email+password -> sends OTP via SMTP
-authRouter.post("/admin/login/start", async (req, res) => {
+// Admin login - direct authentication (no OTP)
+authRouter.post("/admin/login", async (req, res) => {
   const parsed = z
     .object({
       email: z.string().email(),
@@ -182,53 +182,7 @@ authRouter.post("/admin/login/start", async (req, res) => {
   const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
   if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-  // For security, require SMTP to be configured for admin OTP
-  const code = newOtpCode();
-  const codeHash = sha256Hex(code);
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 10); // 10 minutes
-  const rec = await AdminLoginOtp.create({ userId: user._id, codeHash, expiresAt, attemptsLeft: 5 });
-
-  const sent = await sendEmail({
-    to: user.email,
-    subject: "Admin login verification code",
-    html: `<p>Your admin login code is:</p><h2 style="letter-spacing:2px">${code}</h2><p>This code expires in 10 minutes.</p>`
-  });
-  if (sent.skipped && env.nodeEnv !== "development") return res.status(500).json({ error: "SMTP not configured. Admin login requires email OTP." });
-  // In development, allow admin login start to proceed even if SMTP is not configured.
-  if (sent.skipped && env.nodeEnv === "development") {
-    console.warn(`SMTP not configured; development shortcut: admin code for ${user.email} is ${code}`);
-  }
-
-  return res.json({ challengeId: String(rec._id) });
-});
-
-authRouter.post("/admin/login/verify", async (req, res) => {
-  const parsed = z
-    .object({
-      challengeId: z.string().min(1),
-      code: z.string().min(4).max(10)
-    })
-    .safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
-
-  const rec = await AdminLoginOtp.findById(parsed.data.challengeId);
-  if (!rec || rec.consumedAt) return res.status(400).json({ error: "Invalid or expired code" });
-  if (rec.expiresAt.getTime() < Date.now()) return res.status(400).json({ error: "Invalid or expired code" });
-  if (rec.attemptsLeft <= 0) return res.status(400).json({ error: "Too many attempts" });
-
-  const codeHash = sha256Hex(parsed.data.code);
-  if (codeHash !== rec.codeHash) {
-    rec.attemptsLeft -= 1;
-    await rec.save();
-    return res.status(401).json({ error: "Invalid code" });
-  }
-
-  rec.consumedAt = new Date();
-  await rec.save();
-
-  const user = await User.findById(rec.userId);
-  if (!user || user.role !== "admin") return res.status(401).json({ error: "Invalid credentials" });
-
+  // Admin login successful - return token directly
   const token = signToken(user);
   return res.json({
     token,
