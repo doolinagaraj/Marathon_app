@@ -16,7 +16,6 @@ const parsedFrontendOrigins = (process.env.FRONTEND_ORIGINS ?? "")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-const corsStrict = String(process.env.CORS_STRICT ?? "").toLowerCase() === "true";
 
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
@@ -26,7 +25,7 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "7d",
   frontendOrigin: process.env.FRONTEND_ORIGIN ?? defaultFrontendOrigin,
   frontendOrigins: parsedFrontendOrigins,
-  corsStrict,
+
   bootstrapAdminEmail: process.env.BOOTSTRAP_ADMIN_EMAIL ?? "",
   // Optional seed admin user (created/updated on boot if set)
   adminSeed: {

@@ -9,40 +9,14 @@ import { eventsRouter } from "./routes/events.js";
 
 export function createApp() {
   const app = express();
-  const strictAllowList = new Set([
+
     env.frontendOrigin,
     ...env.frontendOrigins,
     "http://localhost:5173",
     "http://localhost:3000"
   ]);
 
-  const corsOptions = env.corsStrict
-    ? {
-        origin: (origin, callback) => {
-          // Non-browser clients (curl/postman) may not send Origin.
-          if (!origin) return callback(null, true);
-          if (strictAllowList.has(origin)) return callback(null, true);
 
-          // Allow GitHub Pages custom path deployments under github.io.
-          if (/^https:\/\/[a-z0-9-]+\.github\.io$/i.test(origin)) {
-            return callback(null, true);
-          }
-
-          return callback(null, false);
-        },
-        credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        optionsSuccessStatus: 200
-      }
-    : {
-        // Relaxed mode: reflect request origin so deployed frontends connect reliably.
-        origin: true,
-        credentials: false,
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        optionsSuccessStatus: 200
-      };
 
   app.use(cors(corsOptions));
   app.options("*", cors(corsOptions));
