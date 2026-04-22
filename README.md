@@ -28,8 +28,7 @@ docker compose up --build
 - If you deploy multiple frontend origins, use:
   - `FRONTEND_ORIGINS=https://<your-user>.github.io,https://<custom-domain>`
 
+
 ### Default behavior
 - First registered user can be made admin by setting `BOOTSTRAP_ADMIN_EMAIL` in `backend/.env` (see template).
 - Registration is simple: **email + username + password**. Login uses **username + password** (username is unique).
-
-hvvp nasw quqy ilaq

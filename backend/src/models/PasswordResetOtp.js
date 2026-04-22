@@ -4,7 +4,7 @@ const PasswordResetOtpSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     codeHash: { type: String, required: true },
-    expiresAt: { type: Date, required: true, index: true },
+    expiresAt: { type: Date, required: true },
     attemptsLeft: { type: Number, default: 5 },
     consumedAt: { type: Date, default: null }
   },

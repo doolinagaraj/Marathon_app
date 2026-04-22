@@ -16,6 +16,7 @@ const parsedFrontendOrigins = (process.env.FRONTEND_ORIGINS ?? "")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: Number(process.env.PORT ?? 4000),
@@ -24,6 +25,7 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "7d",
   frontendOrigin: process.env.FRONTEND_ORIGIN ?? defaultFrontendOrigin,
   frontendOrigins: parsedFrontendOrigins,
+
   bootstrapAdminEmail: process.env.BOOTSTRAP_ADMIN_EMAIL ?? "",
   // Optional seed admin user (created/updated on boot if set)
   adminSeed: {
