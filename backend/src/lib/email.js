@@ -21,15 +21,36 @@ function getTransport() {
 export async function sendEmail({ to, subject, html }) {
   if (!canSend()) {
     console.warn("SMTP not configured; skipping email send.");
+    // Extract OTP code from HTML for debugging
+    const otpMatch = html.match(/<h2[^>]*>([^<]+)<\/h2>/i);
+    if (otpMatch) {
+      console.log("=".repeat(60));
+      console.log(`📧 OTP CODE for ${to}: ${otpMatch[1]}`);
+      console.log("=".repeat(60));
+    }
     return { skipped: true };
   }
-  const transport = getTransport();
-  await transport.sendMail({
-    from: env.smtp.from,
-    to,
-    subject,
-    html
-  });
-  return { skipped: false };
+  try {
+    const transport = getTransport();
+    await transport.sendMail({
+      from: env.smtp.from,
+      to,
+      subject,
+      html
+    });
+    console.log(`✅ Email sent to ${to}`);
+    return { skipped: false };
+  } catch (error) {
+    console.error("❌ Failed to send email:", error.message);
+    // Fallback: log OTP code even if email fails
+    const otpMatch = html.match(/<h2[^>]*>([^<]+)<\/h2>/i);
+    if (otpMatch) {
+      console.log("=".repeat(60));
+      console.log(`📧 OTP CODE for ${to}: ${otpMatch[1]}`);
+      console.log("⚠️  Email failed but you can use this code manually");
+      console.log("=".repeat(60));
+    }
+    throw error;
+  }
 }
 
