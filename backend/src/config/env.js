@@ -11,11 +11,23 @@ function required(name) {
 const defaultFrontendOrigin =
   process.env.NODE_ENV === "production" ? "https://doolinagaraj.github.io" : "http://localhost:5173";
 
+function normalizeOrigin(origin) {
+  return origin.trim().replace(/\/+$/, "");
+}
+
 const parsedFrontendOrigins = (process.env.FRONTEND_ORIGINS ?? "")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin))
   .filter(Boolean);
 
+const frontendOrigin = normalizeOrigin(process.env.FRONTEND_ORIGIN ?? defaultFrontendOrigin);
+
+const frontendOriginsSet = new Set([
+  frontendOrigin,
+  ...parsedFrontendOrigins,
+  // Always allow the deployed GitHub Pages site in production.
+  ...(process.env.NODE_ENV === "production" ? ["https://doolinagaraj.github.io"] : [])
+]);
 
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
@@ -23,8 +35,8 @@ export const env = {
   mongodbUri: required("MONGODB_URI"),
   jwtSecret: required("JWT_SECRET"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "7d",
-  frontendOrigin: process.env.FRONTEND_ORIGIN ?? defaultFrontendOrigin,
-  frontendOrigins: parsedFrontendOrigins,
+  frontendOrigin,
+  frontendOrigins: Array.from(frontendOriginsSet),
 
   bootstrapAdminEmail: process.env.BOOTSTRAP_ADMIN_EMAIL ?? "",
   // Optional seed admin user (created/updated on boot if set)
