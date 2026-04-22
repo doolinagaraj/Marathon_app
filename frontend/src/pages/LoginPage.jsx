@@ -59,9 +59,6 @@ export default function LoginPage() {
               )
             }}
           />
-          {needOtp ? (
-            <TextField label="Admin OTP" value={otp} onChange={(e) => setOtp(e.target.value)} inputMode="numeric" required />
-          ) : null}
           <Button variant="contained" type="submit" disabled={busy}>
             {busy ? "Signing in..." : "Sign in"}
           </Button>
