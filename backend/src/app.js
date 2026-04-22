@@ -16,10 +16,15 @@ export function createApp() {
     "http://localhost:5173"
   ]);
 
+  // Check if wildcard is enabled (allow all origins)
+  const allowAllOrigins = env.frontendOrigins.includes('*') || process.env.CORS_ALLOW_ALL === 'true';
+
   const corsOptions = {
     origin(origin, callback) {
       // Allow non-browser requests (curl/postman/server-side jobs)
       if (!origin) return callback(null, true);
+      // Allow all origins if wildcard is enabled
+      if (allowAllOrigins) return callback(null, true);
       if (allowedOrigins.has(origin)) return callback(null, true);
       return callback(new Error(`Not allowed by CORS: ${origin}`));
     },

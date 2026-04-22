@@ -37,7 +37,6 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "7d",
   frontendOrigin,
   frontendOrigins: Array.from(frontendOriginsSet),
-
   bootstrapAdminEmail: process.env.BOOTSTRAP_ADMIN_EMAIL ?? "",
   // Optional seed admin user (created/updated on boot if set)
   adminSeed: {
