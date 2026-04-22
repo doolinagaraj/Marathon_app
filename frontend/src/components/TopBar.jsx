@@ -17,9 +17,6 @@ export default function TopBar() {
             <Typography variant="body2" sx={{ mr: 2 }}>
               {user.username} ({user.role})
             </Typography>
-            <Button color="inherit" component={RouterLink} to="/change-password">
-              Change Password
-            </Button>
             <Button color="inherit" onClick={logout}>
               Logout
             </Button>
