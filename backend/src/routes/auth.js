@@ -166,7 +166,7 @@ authRouter.post("/login", async (req, res) => {
   if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
   if (user.role === "admin") {
-    return res.status(403).json({ error: "Admins must use admin login" });
+    return res.status(401).json({ error: "Invalid credentials" });
   }
 
   const token = signToken(user);
