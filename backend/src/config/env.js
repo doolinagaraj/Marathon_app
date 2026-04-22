@@ -9,7 +9,7 @@ function required(name) {
 }
 
 const defaultFrontendOrigin =
-  process.env.NODE_ENV === "production" ? "https://doolinagaraj.github.io/Marathon_app" : "http://localhost:5173";
+  process.env.NODE_ENV === "production" ? "https://doolinagaraj.github.io" : "http://localhost:5173";
 
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
