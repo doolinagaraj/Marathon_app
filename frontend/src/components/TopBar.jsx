@@ -22,7 +22,7 @@ export default function TopBar() {
             fontSize: { xs: "1rem", sm: "1.25rem" },
           }}
         >
-          EVENROTH RC
+          EVERNORTH RC
         </Typography>
         <Box sx={{ flex: 1 }} />
         {token && user ? (
