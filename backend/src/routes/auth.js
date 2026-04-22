@@ -77,8 +77,7 @@ authRouter.post("/register", async (req, res) => {
         gender: parsed.data.gender ?? "prefer_not_say",
         birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : null
       },
-      emailVerified: false,
-      emailVerification: { tokenHash: verifyTokenHash, expiresAt: verifyExpiresAt }
+      emailVerified: true // Auto-verify email (no OTP needed)
     });
   } catch (err) {
     // Handle duplicate username (or other unique index) gracefully
@@ -93,33 +92,10 @@ authRouter.post("/register", async (req, res) => {
     user.permissions = ["*"];
     await user.save();
   }
-  // Create an email verification OTP (numeric) and send it to the user.
-  const code = newOtpCode();
-  const codeHash = sha256Hex(code);
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
-  const rec = await EmailVerificationOtp.create({ userId: user._id, codeHash, expiresAt, attemptsLeft: 5 });
-
-  const sent = await sendEmail({
-    to: email,
-    subject: "Confirm your registration",
-    html: `<p>Thanks for registering.</p><p>Your verification code is:</p><h2 style="letter-spacing:2px">${code}</h2><p>This code expires in 24 hours.</p>`
-  });
-  if (sent.skipped && env.nodeEnv !== "development") {
-    // Fallback: Return OTP code in response for debugging (remove in production)
-    console.warn(`SMTP skipped for ${email}, OTP code: ${code}`);
-    return res.status(201).json({
-      user: { id: String(user._id), email: user.email, username: user.username ?? null, role: user.role, emailVerified: user.emailVerified },
-      challengeId: String(rec._id),
-      debugOtp: code // Remove this in production!
-    });
-  }
-  if (sent.skipped && env.nodeEnv === "development") {
-    console.warn(`SMTP not configured; development shortcut: verification code for ${user.email} is ${code}`);
-  }
 
   return res.status(201).json({
     user: { id: String(user._id), email: user.email, username: user.username ?? null, role: user.role, emailVerified: user.emailVerified },
-    challengeId: String(rec._id)
+    message: "Registration successful. You can now login."
   });
 });
 
