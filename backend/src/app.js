@@ -10,21 +10,19 @@ import { eventsRouter } from "./routes/events.js";
 export function createApp() {
   const app = express();
 
+  // Allow all origins in production for public access
+  const isProduction = env.nodeEnv === 'production';
+  
   const allowedOrigins = new Set([
     ...env.frontendOrigins,
     "http://localhost:3000",
     "http://localhost:5173"
   ]);
 
-  // Check if wildcard is enabled (allow all origins)
-  const allowAllOrigins = env.frontendOrigins.includes('*') || process.env.CORS_ALLOW_ALL === 'true';
-
   const corsOptions = {
-    origin(origin, callback) {
+    origin: isProduction ? true : function(origin, callback) {
       // Allow non-browser requests (curl/postman/server-side jobs)
       if (!origin) return callback(null, true);
-      // Allow all origins if wildcard is enabled
-      if (allowAllOrigins) return callback(null, true);
       if (allowedOrigins.has(origin)) return callback(null, true);
       return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
