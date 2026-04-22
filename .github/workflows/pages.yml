@@ -1,45 +1,32 @@
-name: Deploy Frontend to GitHub Pages
+name: GitHub Pages
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
-
-permissions:
-  contents: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Set up Jekyll
+        uses: barryclark/jekyll-paginate-v2@master
 
-      - run: npm install --no-audit --no-progress
+      - name: Build and Deploy
+        run: |  
+          bundle install
+          bundle exec jekyll build
+          mv _site ../
+          cd ..
 
-      - name: Build static frontend
-        run: npm run build
-        env:
-          VITE_BASE_PATH: /Marathon_app/
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://marathon-app-production.up.railway.app' }}
-
-      - name: Add SPA fallback
-        run: cp dist/index.html dist/404.html
-
-      - name: Publish to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: frontend/dist
+          publish_dir: ../_site
