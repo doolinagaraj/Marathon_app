@@ -1,4 +1,4 @@
-## Marathon Event Management (Full Stack)
+## Evenroth Running Club - Event Management System
 
 Monorepo:
 - `backend/`: Node.js + Express + MongoDB REST API (JWT auth, roles, tracking)
