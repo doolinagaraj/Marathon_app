@@ -7,10 +7,9 @@ import { User } from "../models/User.js";
 import { requireAuth } from "../middleware/auth.js";
 import speakeasy from "speakeasy";
 import QRCode from "qrcode";
-import { newOtpCode, newToken, sha256Hex } from "../lib/security.js";
+import { newOtpCode, sha256Hex } from "../lib/security.js";
 import { sendEmail } from "../lib/email.js";
 import { AdminLoginOtp } from "../models/AdminLoginOtp.js";
-import { EmailVerificationOtp } from "../models/EmailVerificationOtp.js";
 import { PasswordResetOtp } from "../models/PasswordResetOtp.js";
 
 export const authRouter = express.Router();
@@ -61,10 +60,6 @@ authRouter.post("/register", async (req, res) => {
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
 
-  const rawVerifyToken = newToken(32);
-  const verifyTokenHash = sha256Hex(rawVerifyToken);
-  const verifyExpiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24);
-
   let user;
   try {
     user = await User.create({
@@ -77,8 +72,7 @@ authRouter.post("/register", async (req, res) => {
         gender: parsed.data.gender ?? "prefer_not_say",
         birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : null
       },
-      emailVerified: false,
-      emailVerification: { tokenHash: verifyTokenHash, expiresAt: verifyExpiresAt }
+      emailVerified: true
     });
   } catch (err) {
     // Handle duplicate username (or other unique index) gracefully
@@ -93,63 +87,10 @@ authRouter.post("/register", async (req, res) => {
     user.permissions = ["*"];
     await user.save();
   }
-  // Create an email verification OTP (numeric) and send it to the user.
-  const code = newOtpCode();
-  const codeHash = sha256Hex(code);
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
-  const rec = await EmailVerificationOtp.create({ userId: user._id, codeHash, expiresAt, attemptsLeft: 5 });
-
-  const sent = await sendEmail({
-    to: email,
-    subject: "Confirm your registration",
-    html: `<p>Thanks for registering.</p><p>Your verification code is:</p><h2 style="letter-spacing:2px">${code}</h2><p>This code expires in 24 hours.</p>`
-  });
-  if (sent.skipped && env.nodeEnv !== "development") {
-    // Fallback: Return OTP code in response for debugging (remove in production)
-    console.warn(`SMTP skipped for ${email}, OTP code: ${code}`);
-    return res.status(201).json({
-      user: { id: String(user._id), email: user.email, username: user.username ?? null, role: user.role, emailVerified: user.emailVerified },
-      challengeId: String(rec._id),
-      debugOtp: code // Remove this in production!
-    });
-  }
-  if (sent.skipped && env.nodeEnv === "development") {
-    console.warn(`SMTP not configured; development shortcut: verification code for ${user.email} is ${code}`);
-  }
 
   return res.status(201).json({
-    user: { id: String(user._id), email: user.email, username: user.username ?? null, role: user.role, emailVerified: user.emailVerified },
-    challengeId: String(rec._id)
+    user: { id: String(user._id), email: user.email, username: user.username ?? null, role: user.role, emailVerified: user.emailVerified }
   });
-});
-
-// Verify email via OTP (challengeId + code)
-authRouter.post("/verify-email-otp", async (req, res) => {
-  const challengeId = String(req.body?.challengeId ?? "");
-  const code = String(req.body?.code ?? "");
-  if (!challengeId || !code) return res.status(400).json({ error: "Invalid input" });
-
-  const rec = await EmailVerificationOtp.findById(challengeId);
-  if (!rec || rec.consumedAt) return res.status(400).json({ error: "Invalid or expired code" });
-  if (rec.expiresAt.getTime() < Date.now()) return res.status(400).json({ error: "Invalid or expired code" });
-  if (rec.attemptsLeft <= 0) return res.status(400).json({ error: "Too many attempts" });
-
-  const codeHash = sha256Hex(code);
-  if (codeHash !== rec.codeHash) {
-    rec.attemptsLeft -= 1;
-    await rec.save();
-    return res.status(401).json({ error: "Invalid code" });
-  }
-
-  rec.consumedAt = new Date();
-  await rec.save();
-
-  const user = await User.findById(rec.userId);
-  if (!user) return res.status(400).json({ error: "Invalid code" });
-
-  user.emailVerified = true;
-  await user.save();
-  return res.json({ ok: true });
 });
 
 authRouter.post("/login", async (req, res) => {
@@ -265,52 +206,6 @@ authRouter.post("/admin/login/verify", async (req, res) => {
       twoFactorEnabled: Boolean(user.twoFactor?.enabled)
     }
   });
-});
-
-authRouter.post("/verify-email", async (req, res) => {
-  const email = String(req.body?.email ?? "").toLowerCase();
-  const token = String(req.body?.token ?? "");
-  if (!email || !token) return res.status(400).json({ error: "Invalid input" });
-
-  const user = await User.findOne({ email });
-  if (!user) return res.status(400).json({ error: "Invalid token" });
-  if (user.emailVerified) return res.json({ ok: true });
-
-  const tokenHash = sha256Hex(token);
-  const expiresAt = user.emailVerification?.expiresAt;
-  if (!user.emailVerification?.tokenHash || user.emailVerification.tokenHash !== tokenHash) {
-    return res.status(400).json({ error: "Invalid token" });
-  }
-  if (!expiresAt || expiresAt.getTime() < Date.now()) {
-    return res.status(400).json({ error: "Token expired" });
-  }
-
-  user.emailVerified = true;
-  user.emailVerification = { tokenHash: null, expiresAt: null };
-  await user.save();
-  return res.json({ ok: true });
-});
-
-authRouter.post("/resend-verification", async (req, res) => {
-  const email = String(req.body?.email ?? "").toLowerCase();
-  if (!email) return res.status(400).json({ error: "Invalid input" });
-
-  const user = await User.findOne({ email });
-  if (!user) return res.json({ ok: true });
-  if (user.emailVerified) return res.json({ ok: true });
-
-  const rawVerifyToken = newToken(32);
-  user.emailVerification = { tokenHash: sha256Hex(rawVerifyToken), expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24) };
-  await user.save();
-
-  const verifyUrl = `${env.frontendOrigin}/login?verify=1&email=${encodeURIComponent(email)}&token=${rawVerifyToken}`;
-  await sendEmail({
-    to: email,
-    subject: "Confirm your registration",
-    html: `<p>Confirm your email:</p><p><a href="${verifyUrl}">Confirm Email</a></p>`
-  });
-
-  return res.json({ ok: true });
 });
 
 // Admin 2FA setup (TOTP)
