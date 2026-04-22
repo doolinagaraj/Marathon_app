@@ -12,6 +12,7 @@ export function createApp() {
 
   // Allow all origins in production for public access
   const isProduction = env.nodeEnv === 'production';
+  const allowAllOrigins = process.env.CORS_ALLOW_ALL === 'true';
   
   const allowedOrigins = new Set([
     ...env.frontendOrigins,
@@ -20,7 +21,7 @@ export function createApp() {
   ]);
 
   const corsOptions = {
-    origin: isProduction ? true : function(origin, callback) {
+    origin: (isProduction || allowAllOrigins) ? true : function(origin, callback) {
       // Allow non-browser requests (curl/postman/server-side jobs)
       if (!origin) return callback(null, true);
       if (allowedOrigins.has(origin)) return callback(null, true);
