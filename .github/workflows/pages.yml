@@ -35,7 +35,7 @@ jobs:
       - name: Build static frontend
         run: npm run build
         env:
-          VITE_BASE_PATH: /Marathon/
+          VITE_BASE_PATH: /Marathon_app/
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
 
       - name: Add SPA fallback
