@@ -4,7 +4,7 @@ const AdminLoginOtpSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     codeHash: { type: String, required: true },
-    expiresAt: { type: Date, required: true, index: true },
+    expiresAt: { type: Date, required: true },
     attemptsLeft: { type: Number, default: 5 },
     consumedAt: { type: Date, default: null }
   },
@@ -14,4 +14,3 @@ const AdminLoginOtpSchema = new mongoose.Schema(
 AdminLoginOtpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export const AdminLoginOtp = mongoose.model("AdminLoginOtp", AdminLoginOtpSchema);
-

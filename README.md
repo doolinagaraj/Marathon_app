@@ -20,6 +20,17 @@ docker compose up --build
 - Frontend: `http://localhost:5173`
 - Backend health: `http://localhost:4000/health`
 
+### Frontend + backend connection notes (important)
+- Set `frontend/.env` with a fully-qualified backend URL:
+  - `VITE_API_BASE_URL=https://<your-backend>.up.railway.app`
+- Set `backend/.env` with your frontend origin:
+  - `FRONTEND_ORIGIN=https://<your-user>.github.io`
+- If you deploy multiple frontend origins, use:
+  - `FRONTEND_ORIGINS=https://<your-user>.github.io,https://<custom-domain>`
+- If requests still fail due CORS in production, keep relaxed mode:
+  - `CORS_STRICT=false` (default, allows all origins)
+  - Only set `CORS_STRICT=true` when your allowlist values are finalized.
+
 ### Default behavior
 - First registered user can be made admin by setting `BOOTSTRAP_ADMIN_EMAIL` in `backend/.env` (see template).
 - Registration is simple: **email + username + password**. Login uses **username + password** (username is unique).
