@@ -33,9 +33,6 @@ export const api = {
   verifyEmailOtp: (payload) => request("/api/auth/verify-email-otp", { method: "POST", body: payload }),
   resendVerification: (payload) => request("/api/auth/resend-verification", { method: "POST", body: payload }),
   adminLogin: (payload) => request("/api/auth/admin/login", { method: "POST", body: payload }),
-  changePassword: (token, payload) => request("/api/auth/change-password", { method: "POST", token, body: payload }),
-  forgotPasswordStart: (payload) => request("/api/auth/forgot-password/start", { method: "POST", body: payload }),
-  forgotPasswordVerify: (payload) => request("/api/auth/forgot-password/verify", { method: "POST", body: payload }),
   me: (token) => request("/api/auth/me", { token }),
 
   listEvents: (token) => request("/api/events", { token }),

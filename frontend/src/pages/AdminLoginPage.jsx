@@ -60,11 +60,6 @@ export default function AdminLoginPage() {
             {busy ? "Logging in..." : "Login"}
           </Button>
           <Typography variant="body2">
-            <Link component={RouterLink} to="/forgot-password?from=admin">
-              Forgot or change password?
-            </Link>
-          </Typography>
-          <Typography variant="body2">
             Not an admin? <RouterLink to="/login">User Login</RouterLink>
           </Typography>
         </Stack>

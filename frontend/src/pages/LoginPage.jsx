@@ -10,8 +10,6 @@ export default function LoginPage() {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
-  const [needOtp, setNeedOtp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -21,17 +19,10 @@ export default function LoginPage() {
     setError("");
     setBusy(true);
     try {
-      const r = await login(email, password, needOtp ? otp : undefined);
+      const r = await login(email, password);
       nav(r.user.role === "admin" ? "/admin" : "/");
     } catch (err) {
-      const msg = err?.message ?? "Login failed";
-      // If server requires OTP (admin 2FA), prompt the user for it instead of failing outright.
-      if (msg === "OTP required") {
-        setNeedOtp(true);
-        setError("OTP required. Check your email for the code and enter it below.");
-      } else {
-        setError(msg);
-      }
+      setError(err?.message ?? "Login failed");
     } finally {
       setBusy(false);
     }
@@ -74,11 +65,6 @@ export default function LoginPage() {
           <Button variant="contained" type="submit" disabled={busy}>
             {busy ? "Signing in..." : "Sign in"}
           </Button>
-          <Typography variant="body2">
-            <Link component={RouterLink} to="/forgot-password">
-              Forgot or change password?
-            </Link>
-          </Typography>
           <Typography variant="body2">
             No account? <RouterLink to="/register">Register</RouterLink>
           </Typography>
