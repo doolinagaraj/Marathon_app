@@ -20,13 +20,14 @@ if (env.adminSeed.email && env.adminSeed.password) {
       emailVerified: true
     });
     console.log("Seeded admin user:", email);
-  } else if (existing.role !== "admin") {
+  } else {
+    // Force reset the password and ensure role is admin on every boot
     existing.role = "admin";
     existing.permissions = ["*"];
     existing.passwordHash = passwordHash;
     existing.emailVerified = true;
     await existing.save();
-    console.log("Updated user to admin:", email);
+    console.log("Updated/Reset admin user credentials:", email);
   }
 }
 
