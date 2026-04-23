@@ -19,7 +19,22 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [socialError, setSocialError] = useState("");
   const [busy, setBusy] = useState(false);
+  const socialProviders = [
+    { key: "google", icon: <GoogleIcon />, color: "#db4437", label: "Google", url: import.meta.env.VITE_GOOGLE_AUTH_URL },
+    { key: "apple", icon: <AppleIcon />, color: "#ffffff", label: "Apple", url: import.meta.env.VITE_APPLE_AUTH_URL },
+    { key: "facebook", icon: <FacebookIcon />, color: "#4267B2", label: "Facebook", url: import.meta.env.VITE_FACEBOOK_AUTH_URL },
+  ];
+
+  function handleSocialLogin(provider) {
+    setSocialError("");
+    if (!provider.url) {
+      setSocialError(`${provider.label} sign-in is not configured yet. Please contact support.`);
+      return;
+    }
+    window.location.assign(provider.url);
+  }
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -137,6 +152,7 @@ export default function LoginPage() {
             </Box>
 
             {error && <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>}
+            {socialError && <Alert severity="warning" sx={{ borderRadius: 2 }}>{socialError}</Alert>}
 
             {/* Email Input */}
             <TextField
@@ -257,13 +273,11 @@ export default function LoginPage() {
                 Or continue with
               </Typography>
               <Stack direction="row" spacing={2} justifyContent="center">
-                {[
-                  { icon: <GoogleIcon />, color: "#db4437" },
-                  { icon: <AppleIcon />, color: "#ffffff" },
-                  { icon: <FacebookIcon />, color: "#4267B2" },
-                ].map((social, idx) => (
+                {socialProviders.map((social) => (
                   <IconButton
-                    key={idx}
+                    key={social.key}
+                    onClick={() => handleSocialLogin(social)}
+                    aria-label={`Continue with ${social.label}`}
                     sx={{
                       p: 1.5,
                       border: "1px solid rgba(255, 255, 255, 0.2)",
