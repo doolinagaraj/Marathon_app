@@ -1,6 +1,20 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  "http://localhost:4000";
+function getApiBaseUrl() {
+  const configured = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (configured) return configured.replace(/\/$/, "");
+
+  if (typeof window === "undefined") {
+    return "http://localhost:4000";
+  }
+
+  const { protocol, hostname, port, origin } = window.location;
+  if (port === "4000") {
+    return origin;
+  }
+
+  return `${protocol}//${hostname}:4000`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export class ApiError extends Error {
   constructor(message, status, payload) {
