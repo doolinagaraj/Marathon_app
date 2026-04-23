@@ -20,6 +20,22 @@ const eventSchema = z.object({
   endPoint: z.string().min(1)
 });
 
+async function getLatestRegistrationsByUser(eventId, { populateUser = false } = {}) {
+  const query = Registration.find({ eventId }).sort({ createdAt: -1 });
+  if (populateUser) query.populate("userId", "email username profile");
+
+  const regs = await query.lean();
+  const latestByUser = new Map();
+
+  for (const reg of regs) {
+    const userKey = String(reg?.userId?._id ?? reg?.userId ?? "");
+    if (!userKey) continue;
+    if (!latestByUser.has(userKey)) latestByUser.set(userKey, reg);
+  }
+
+  return Array.from(latestByUser.values());
+}
+
 // Public (authenticated) list for users
 eventsRouter.get("/", requireAuth, async (req, res) => {
   let query = {};
@@ -32,7 +48,17 @@ eventsRouter.get("/", requireAuth, async (req, res) => {
   }
 
   const events = await Event.find(query).sort(sort).lean();
-  return res.json({ events });
+  if (req.user?.role === "admin") return res.json({ events });
+
+  const registrations = await Registration.find({ userId: req.user.sub }).select("eventId status createdAt").lean();
+  return res.json({
+    events,
+    registrations: registrations.map((r) => ({
+      eventId: String(r.eventId),
+      status: r.status ?? "registered",
+      registeredAt: r.createdAt ?? null
+    }))
+  });
 });
 
 // Admin CRUD
@@ -68,11 +94,17 @@ eventsRouter.post("/:id/register", requireAuth, async (req, res) => {
   const event = await Event.findById(eventId);
   if (!event) return res.status(404).json({ error: "Not found" });
 
+  let reg = await Registration.findOne({ userId: req.user.sub, eventId });
+  if (reg) return res.json({ registration: reg, alreadyRegistered: true });
+
   try {
-    const reg = await Registration.create({ userId: req.user.sub, eventId, status: "registered" });
-    return res.status(201).json({ registration: reg });
+    reg = await Registration.create({ userId: req.user.sub, eventId, status: "registered" });
+    return res.status(201).json({ registration: reg, alreadyRegistered: false });
   } catch (e) {
-    if (String(e?.code) === "11000") return res.status(409).json({ error: "Already registered" });
+    if (String(e?.code) === "11000") {
+      reg = await Registration.findOne({ userId: req.user.sub, eventId });
+      return res.json({ registration: reg, alreadyRegistered: true });
+    }
     throw e;
   }
 });
@@ -201,7 +233,7 @@ eventsRouter.get("/:id/leaderboard", requireAuth, async (req, res) => {
 // Admin: participants list
 eventsRouter.get("/:id/participants", requireAuth, requireRole("admin"), async (req, res) => {
   const eventId = req.params.id;
-  const regs = await Registration.find({ eventId }).populate("userId", "email username profile").lean();
+  const regs = await getLatestRegistrationsByUser(eventId, { populateUser: true });
 
   const userIds = regs.map((r) => r.userId?._id).filter(Boolean);
   const runs = await RunRecord.find({ eventId, userId: { $in: userIds }, durationSec: { $ne: null } })
@@ -238,7 +270,7 @@ eventsRouter.get("/:id/participants", requireAuth, requireRole("admin"), async (
 // Admin: attendance + analytics for an event
 eventsRouter.get("/:id/analytics", requireAuth, requireRole("admin"), async (req, res) => {
   const eventId = req.params.id;
-  const regs = await Registration.find({ eventId }).lean();
+  const regs = await getLatestRegistrationsByUser(eventId);
   const completedRuns = await RunRecord.find({ eventId, durationSec: { $ne: null } }).lean();
 
   const attendance = {
@@ -276,7 +308,16 @@ eventsRouter.get("/:id/analytics", requireAuth, requireRole("admin"), async (req
 // Admin: export Excel
 eventsRouter.get("/:id/participants.xlsx", requireAuth, requireRole("admin"), async (req, res) => {
   const eventId = req.params.id;
-  const regs = await Registration.find({ eventId }).populate("userId", "email username profile").lean();
+  const regs = await getLatestRegistrationsByUser(eventId, { populateUser: true });
+
+  const userIds = regs.map((r) => r.userId?._id).filter(Boolean);
+  const runs = await RunRecord.find({ eventId, userId: { $in: userIds }, durationSec: { $ne: null } }).lean();
+  const bestByUser = new Map();
+  for (const r of runs) {
+    const key = String(r.userId);
+    const cur = bestByUser.get(key);
+    if (!cur || (r.durationSec ?? Infinity) < (cur.durationSec ?? Infinity)) bestByUser.set(key, r);
+  }
 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Participants");
@@ -285,15 +326,20 @@ eventsRouter.get("/:id/participants.xlsx", requireAuth, requireRole("admin"), as
     { header: "Username", key: "username", width: 18 },
     { header: "Gender", key: "gender", width: 14 },
     { header: "Status", key: "status", width: 14 },
-    { header: "Registered At", key: "registeredAt", width: 24 }
+    { header: "Registered At", key: "registeredAt", width: 24 },
+    { header: "Best Start Time", key: "bestStartTime", width: 24 },
+    { header: "Best End Time", key: "bestEndTime", width: 24 }
   ];
   regs.forEach((reg) => {
+    const best = bestByUser.get(String(reg.userId?._id));
     ws.addRow({
       email: reg.userId?.email ?? "",
       username: reg.userId?.username ?? "",
       gender: reg.userId?.profile?.gender ?? "prefer_not_say",
       status: reg.status ?? "registered",
-      registeredAt: reg.createdAt?.toISOString?.() ?? ""
+      registeredAt: reg.createdAt?.toISOString?.() ?? "",
+      bestStartTime: best?.startTime?.toISOString?.() ?? "",
+      bestEndTime: best?.endTime?.toISOString?.() ?? ""
     });
   });
 
@@ -308,7 +354,7 @@ eventsRouter.get("/:id/participants.xlsx", requireAuth, requireRole("admin"), as
 // Admin: export PDF (simple table)
 eventsRouter.get("/:id/participants.pdf", requireAuth, requireRole("admin"), async (req, res) => {
   const eventId = req.params.id;
-  const regs = await Registration.find({ eventId }).populate("userId", "email username profile").lean();
+  const regs = await getLatestRegistrationsByUser(eventId, { populateUser: true });
 
   await audit({ actorUserId: req.user.sub, action: "export.pdf", entityType: "event", entityId: eventId });
 
@@ -331,7 +377,7 @@ eventsRouter.get("/:id/participants.pdf", requireAuth, requireRole("admin"), asy
 eventsRouter.get("/:id/participants.csv", requireAuth, requireRole("admin"), async (req, res) => {
   const eventId = req.params.id;
 
-  const regs = await Registration.find({ eventId }).populate("userId", "email username").lean();
+  const regs = await getLatestRegistrationsByUser(eventId, { populateUser: true });
   const userIds = regs.map((r) => r.userId?._id).filter(Boolean);
   const runs = await RunRecord.find({ eventId, userId: { $in: userIds }, durationSec: { $ne: null } }).lean();
 
@@ -367,4 +413,3 @@ eventsRouter.get("/:id/participants.csv", requireAuth, requireRole("admin"), asy
   for (const r of records) stringifier.write(r);
   stringifier.end();
 });
-
