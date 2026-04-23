@@ -47,168 +47,51 @@ export default function LoginPage() {
         p: 2,
       }}
     >
-      {/* Animated Background */}
+      {/* Blurred Image Background with Animation */}
       <Box
         sx={{
           position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "linear-gradient(135deg, #0a0a2e 0%, #000000 50%, #0a1628 100%)",
+          top: "-5%",
+          left: "-5%",
+          right: "-5%",
+          bottom: "-5%",
+          backgroundImage: "url('/login-bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "blur(12px)",
           zIndex: 0,
-        }}
-      >
-        {/* Animated Stars */}
-        {[...Array(30)].map((_, i) => (
-          <Box
-            key={i}
-            sx={{
-              position: "absolute",
-              width: Math.random() * 3 + 1,
-              height: Math.random() * 3 + 1,
-              backgroundColor: "#fff",
-              borderRadius: "50%",
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 60}%`,
-              animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
-          />
-        ))}
-
-        {/* Moon */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 60,
-            right: 60,
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, #ffd700 0%, #ffed4e 40%, transparent 70%)",
-            boxShadow: "0 0 60px rgba(255, 215, 0, 0.6), 0 0 100px rgba(255, 215, 0, 0.3)",
-            animation: "moonGlow 4s ease-in-out infinite",
-          }}
-        />
-
-        {/* City Skyline Silhouette */}
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 200,
-            background: "linear-gradient(to top, #000 0%, transparent 100%)",
-          }}
-        >
-          {/* Buildings */}
-          <svg
-            viewBox="0 0 1200 200"
-            preserveAspectRatio="none"
-            style={{ position: "absolute", bottom: 0, width: "100%", height: "100%" }}
-          >
-            <path
-              d="M0,200 L0,150 L50,150 L50,120 L100,120 L100,160 L150,160 L150,100 L200,100 L200,140 L250,140 L250,170 L300,170 L300,110 L350,110 L350,150 L400,150 L400,130 L450,130 L450,160 L500,160 L500,90 L550,90 L550,140 L600,140 L600,120 L650,120 L650,170 L700,170 L700,100 L750,100 L750,150 L800,150 L800,110 L850,110 L850,160 L900,160 L900,130 L950,130 L950,140 L1000,140 L1000,120 L1050,120 L1050,170 L1100,170 L1100,150 L1150,150 L1150,160 L1200,160 L1200,200 Z"
-              fill="#0a0a1a"
-            />
-            {/* Neon Windows */}
-            {[...Array(40)].map((_, i) => (
-              <rect
-                key={i}
-                x={Math.random() * 1200}
-                y={Math.random() * 100 + 50}
-                width="8"
-                height="12"
-                fill={Math.random() > 0.5 ? "#00d4ff" : "#ff6b35"}
-                opacity={Math.random() * 0.5 + 0.3}
-              />
-            ))}
-          </svg>
-        </Box>
-
-        {/* Runner SVG Illustration */}
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 100,
-            left: "50%",
-            transform: "translateX(-50%)",
-            opacity: 0.15,
-            animation: "runnerBob 2s ease-in-out infinite",
-          }}
-        >
-          <svg width="300" height="400" viewBox="0 0 300 400">
-            {/* Male Runner Silhouette */}
-            <g fill="#00d4ff">
-              {/* Head */}
-              <circle cx="150" cy="50" r="25" />
-              {/* Body */}
-              <path d="M150,75 L150,180 L140,180 L140,75 Z" />
-              {/* Arms */}
-              <path d="M145,90 L120,130 L130,135 L150,100 Z" />
-              <path d="M155,90 L180,120 L170,125 L150,100 Z" />
-              {/* Legs */}
-              <path d="M145,180 L120,260 L135,265 L150,190 Z" />
-              <path d="M155,180 L180,250 L165,255 L150,190 Z" />
-            </g>
-          </svg>
-        </Box>
-
-        {/* Glowing Road */}
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 80,
-            background: "linear-gradient(to top, rgba(0, 212, 255, 0.2) 0%, transparent 100%)",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: "50%",
-              left: 0,
-              right: 0,
-              height: 2,
-              background: "repeating-linear-gradient(90deg, #00d4ff 0px, #00d4ff 40px, transparent 40px, transparent 80px)",
-              animation: "roadMove 2s linear infinite",
-            },
-          }}
-        />
-
-        {/* Floating Particles */}
-        {[...Array(15)].map((_, i) => (
-          <Box
-            key={i}
-            sx={{
-              position: "absolute",
-              width: Math.random() * 6 + 2,
-              height: Math.random() * 6 + 2,
-              background: `linear-gradient(135deg, #00d4ff, #00ff88)`,
-              borderRadius: "50%",
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `float ${Math.random() * 4 + 3}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-              opacity: 0.6,
-            }}
-          />
-        ))}
-
-        {/* Gradient Overlay */}
-        <Box
-          sx={{
+          animation: "bgPan 20s ease-in-out infinite alternate",
+          "&::after": {
+            content: '""',
             position: "absolute",
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            background: "radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.6) 100%)",
+            background: "radial-gradient(ellipse at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%)",
+          }
+        }}
+      />
+
+      {/* Floating Particles for extra animation */}
+      {[...Array(15)].map((_, i) => (
+        <Box
+          key={i}
+          sx={{
+            position: "absolute",
+            width: Math.random() * 6 + 2,
+            height: Math.random() * 6 + 2,
+            background: `linear-gradient(135deg, #00d4ff, #00ff88)`,
+            borderRadius: "50%",
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animation: `float ${Math.random() * 4 + 3}s ease-in-out infinite`,
+            animationDelay: `${Math.random() * 2}s`,
+            opacity: 0.6,
+            zIndex: 0,
           }}
         />
-      </Box>
+      ))}
 
       {/* Glass Card */}
       <Box
@@ -422,28 +305,9 @@ export default function LoginPage() {
 
       {/* CSS Animations */}
       <style>{`
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.5); }
-        }
-        
-        @keyframes moonGlow {
-          0%, 100% { 
-            boxShadow: 0 0 60px rgba(255, 215, 0, 0.6), 0 0 100px rgba(255, 215, 0, 0.3);
-          }
-          50% { 
-            boxShadow: 0 0 80px rgba(255, 215, 0, 0.8), 0 0 120px rgba(255, 215, 0, 0.5);
-          }
-        }
-        
-        @keyframes runnerBob {
-          0%, 100% { transform: translateX(-50%) translateY(0); }
-          50% { transform: translateX(-50%) translateY(-20px); }
-        }
-        
-        @keyframes roadMove {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-80px); }
+        @keyframes bgPan {
+          0% { transform: scale(1); }
+          100% { transform: scale(1.1); }
         }
         
         @keyframes float {
