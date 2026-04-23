@@ -6,15 +6,12 @@ function getApiBaseUrl() {
     return "http://localhost:4000";
   }
 
-  const { protocol, hostname } = window.location;
-  const localHosts = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
-
-  if (localHosts.has(hostname)) {
-    return `${protocol}//${hostname}:4000`;
+  const { protocol, hostname, port, origin } = window.location;
+  if (port === "4000") {
+    return origin;
   }
 
-  // On deployed environments, prefer same-origin API routes.
-  return "";
+  return `${protocol}//${hostname}:4000`;
 }
 
 const API_BASE_URL = getApiBaseUrl();

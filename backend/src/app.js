@@ -10,9 +10,10 @@ import { eventsRouter } from "./routes/events.js";
 export function createApp() {
   const app = express();
 
-  // Allow all origins in production for public access
-  const isProduction = env.nodeEnv === 'production';
-  const allowAllOrigins = process.env.CORS_ALLOW_ALL === 'true';
+  const isProduction = env.nodeEnv === "production";
+  // In development/staging, default to permissive CORS so remote-device testing works
+  // without manual origin maintenance. In production, require explicit opt-in.
+  const allowAllOrigins = process.env.CORS_ALLOW_ALL === "true" || !isProduction;
   
   const allowedOrigins = new Set([
     ...env.frontendOrigins,
@@ -21,12 +22,14 @@ export function createApp() {
   ]);
 
   const corsOptions = {
-    origin: (isProduction || allowAllOrigins) ? true : function(origin, callback) {
-      // Allow non-browser requests (curl/postman/server-side jobs)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.has(origin)) return callback(null, true);
-      return callback(new Error(`Not allowed by CORS: ${origin}`));
-    },
+    origin: allowAllOrigins
+      ? true
+      : function(origin, callback) {
+          // Allow non-browser requests (curl/postman/server-side jobs)
+          if (!origin) return callback(null, true);
+          if (allowedOrigins.has(origin)) return callback(null, true);
+          return callback(new Error(`Not allowed by CORS: ${origin}`));
+        },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
