@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Container } from "@mui/material";
 import TopBar from "./components/TopBar.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -11,10 +11,13 @@ import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import UserDashboard from "./pages/user/UserDashboard.jsx";
 
 export default function App() {
+  const location = useLocation();
+  const isAuthRoute = ["/login", "/register"].includes(location.pathname);
+
   return (
     <>
-      <TopBar />
-      <Container maxWidth="lg" sx={{ py: 3 }}>
+      {!isAuthRoute ? <TopBar /> : null}
+      <Container maxWidth={isAuthRoute ? false : "lg"} disableGutters={isAuthRoute} sx={{ py: isAuthRoute ? 0 : 3 }}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin-login" element={<AdminLoginPage />} />

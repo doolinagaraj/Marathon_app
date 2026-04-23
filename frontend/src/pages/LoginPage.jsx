@@ -1,9 +1,25 @@
 import React, { useState } from "react";
-import { Alert, Box, Button, IconButton, InputAdornment, Link, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Alert, InputAdornment, Link, Stack, TextField, IconButton, Typography } from "@mui/material";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../lib/auth.jsx";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import AuthShell from "../components/auth/AuthShell.jsx";
+
+const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 3,
+    color: "#e7f5ff",
+    background: "rgba(11,20,42,0.55)",
+    "& fieldset": { borderColor: "rgba(130,180,224,0.4)" },
+    "&:hover fieldset": { borderColor: "#49cbff" },
+    "&.Mui-focused fieldset": { borderColor: "#35c8ff", boxShadow: "0 0 12px rgba(53,200,255,0.45)" }
+  },
+  "& .MuiInputLabel-root": { color: "rgba(207,236,255,0.82)" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#64d7ff" }
+};
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -15,6 +31,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [remember, setRemember] = useState(true);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -25,7 +42,6 @@ export default function LoginPage() {
       nav(r.user.role === "admin" ? "/admin" : "/");
     } catch (err) {
       const msg = err?.message ?? "Login failed";
-      // If server requires OTP (admin 2FA), prompt the user for it instead of failing outright.
       if (msg === "OTP required") {
         setNeedOtp(true);
         setError("OTP required. Check your email for the code and enter it below.");
@@ -38,10 +54,17 @@ export default function LoginPage() {
   }
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center" }}>
-      <Paper sx={{ p: 3, width: "100%", maxWidth: 460 }}>
-        <Stack spacing={2} component="form" onSubmit={onSubmit}>
-          <Typography variant="h5">Login</Typography>
+    <AuthShell
+      mode="login"
+      title="Welcome Back"
+      subtitle="Sign in to continue your journey"
+      onSubmit={onSubmit}
+      busy={busy}
+      remember={remember}
+      setRemember={setRemember}
+      forgotHref="/forgot-password"
+      form={
+        <Stack spacing={2}>
           {error ? <Alert severity="error">{error}</Alert> : null}
           <TextField
             label="Email or Username"
@@ -51,6 +74,14 @@ export default function LoginPage() {
             autoCorrect="off"
             required
             type="text"
+            sx={fieldSx}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonOutlineRoundedIcon sx={{ color: "#4fd3ff" }} />
+                </InputAdornment>
+              )
+            }}
           />
           <TextField
             label="Password"
@@ -58,32 +89,33 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             type={showPassword ? "text" : "password"}
             required
+            sx={fieldSx}
             InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockOutlinedIcon sx={{ color: "#4fd3ff" }} />
+                </InputAdornment>
+              ),
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword((s) => !s)} edge="end" aria-label="toggle password visibility">
+                  <IconButton onClick={() => setShowPassword((s) => !s)} edge="end" aria-label="toggle password visibility" sx={{ color: "#fff" }}>
                     {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                   </IconButton>
                 </InputAdornment>
               )
             }}
           />
-          {needOtp ? (
-            <TextField label="Admin OTP" value={otp} onChange={(e) => setOtp(e.target.value)} inputMode="numeric" required />
-          ) : null}
-          <Button variant="contained" type="submit" disabled={busy}>
-            {busy ? "Signing in..." : "Sign in"}
-          </Button>
-          <Typography variant="body2">
-            <Link component={RouterLink} to="/forgot-password">
-              Forgot or change password?
-            </Link>
-          </Typography>
-          <Typography variant="body2">
-            No account? <RouterLink to="/register">Register</RouterLink>
-          </Typography>
+          {needOtp ? <TextField label="Admin OTP" value={otp} onChange={(e) => setOtp(e.target.value)} inputMode="numeric" required sx={fieldSx} /> : null}
         </Stack>
-      </Paper>
-    </Box>
+      }
+      footer={
+        <Typography sx={{ color: "rgba(209,232,255,0.92)", textAlign: "center" }}>
+          Don&apos;t have an account?{" "}
+          <Link component={RouterLink} to="/register" sx={{ color: "#20d1ff", fontWeight: 700, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
+            Register Now
+          </Link>
+        </Typography>
+      }
+    />
   );
 }
