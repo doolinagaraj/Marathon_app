@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test - Marathon App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        .success {
+            border-left-color: #4CAF50;
+            background: #e8f5e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Marathon App - CORS Test</h1>
+        <p>This page tests if the backend API is accessible from any origin (external network)</p>
+        
+        <div class="test-section">
+            <h2>Test 1: Health Check</h2>
+            <button onclick="testHealth()">Test Health Endpoint</button>
+            <div id="health-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 2: Get Events (Public)</h2>
+            <button onclick="testEvents()">Test Events Endpoint</button>
+            <div id="events-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 3: Register User</h2>
+            <button onclick="testRegister()">Test Registration</button>
+            <div id="register-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Your Current Origin:</h2>
+            <div id="origin-info"></div>
+        </div>
+    </div>
+
+    <script>
+        // Change this to your Railway backend URL
+        const API_BASE_URL = 'https://marathonapp-production.up.railway.app';
+        
+        document.getElementById('origin-info').innerHTML = 
+            `<div class="result success">Current Origin: ${window.location.origin}</div>`;
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = '<div class="result">Testing...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="result success">
+✅ SUCCESS!
+Status: ${response.status}
+Response: ${JSON.stringify(data, null, 2)}
+CORS is working correctly!
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+❌ FAILED!
+Error: ${error.message}
+This is likely a CORS error. Check browser console.
+                    </div>
+                `;
+            }
+        }
+
+        async function testEvents() {
+            const resultDiv = document.getElementById('events-result');
+            resultDiv.innerHTML = '<div class="result">Testing...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/events`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="result success">
+✅ SUCCESS!
+Status: ${response.status}
+Response: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+❌ FAILED!
+Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testRegister() {
+            const resultDiv = document.getElementById('register-result');
+            resultDiv.innerHTML = '<div class="result">Testing...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'Test1234!',
+                        name: 'Test User'
+                    })
+                });
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="result success">
+✅ Request Completed!
+Status: ${response.status}
+Response: ${JSON.stringify(data, null, 2)}
+${response.ok ? 'CORS is working!' : 'Request completed but there was a validation error (CORS is OK)'}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+❌ FAILED!
+Error: ${error.message}
+This is likely a CORS error. Check browser console (F12).
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run health test on page load
+        window.onload = () => {
+            setTimeout(testHealth, 500);
+        };
+    </script>
+</body>
+</html>

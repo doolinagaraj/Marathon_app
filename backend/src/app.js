@@ -10,6 +10,7 @@ import { eventsRouter } from "./routes/events.js";
 export function createApp() {
   const app = express();
 
+main
   const allowedOrigins = new Set([
     ...env.frontendOrigins,
     "http://localhost:3000",
@@ -17,7 +18,6 @@ export function createApp() {
   ]);
 
   const corsOptions = {
-    origin(origin, callback) {
       // Allow non-browser requests (curl/postman/server-side jobs)
       if (!origin) return callback(null, true);
       if (allowedOrigins.has(origin)) return callback(null, true);
