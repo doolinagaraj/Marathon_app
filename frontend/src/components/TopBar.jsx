@@ -3,13 +3,17 @@ import { AppBar, Box, Button, Toolbar, Typography, useMediaQuery, useTheme } fro
 import { Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../lib/auth.jsx";
 
-export default function TopBar() {
+export default function TopBar({ transparent }) {
   const { user, token, logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <AppBar position="sticky" elevation={0}>
+    <AppBar
+      position={transparent ? "absolute" : "sticky"}
+      elevation={0}
+      sx={transparent ? { background: "transparent", zIndex: 10 } : {}}
+    >
       <Toolbar>
         <Typography
           variant="h6"

@@ -43,13 +43,14 @@ export default function RegisterPage() {
   return (
     <Box
       sx={{
+        height: "100%",
         minHeight: "100vh",
         position: "relative",
         overflow: "hidden",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        p: 2,
+        p: { xs: 2, md: 4 },
       }}
     >
       {/* Animated Background */}
@@ -250,16 +251,75 @@ export default function RegisterPage() {
         />
       </Box>
 
-      {/* Glass Card */}
+      {/* Content Container */}
       <Box
         sx={{
           position: "relative",
           zIndex: 1,
           width: "100%",
-          maxWidth: 420,
-          animation: "cardSlideUp 0.6s ease-out",
+          maxWidth: 1200,
+          display: "flex",
+          flexDirection: { xs: "column", md: "row-reverse" },
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: { xs: 4, md: 8 },
+          mt: { xs: 8, md: 0 },
         }}
       >
+        {/* Title Section */}
+        <Box
+          sx={{
+            textAlign: { xs: "right", md: "right" },
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: { xs: "flex-end", md: "flex-end" },
+            justifyContent: "center",
+            width: "100%",
+            animation: "cardSlideUp 0.6s ease-out",
+          }}
+        >
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: 900,
+              fontStyle: "italic",
+              color: "#fff",
+              lineHeight: 1.1,
+              letterSpacing: "0.05em",
+              fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4.5rem" },
+            }}
+          >
+            RUN
+            <br />
+            BELIEVE
+            <br />
+            <Box component="span" sx={{ color: "#00ff88", textShadow: "0 0 20px rgba(0,255,136,0.5)" }}>
+              ACHIEVE
+            </Box>
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              color: "rgba(255,255,255,0.8)",
+              mt: 2,
+              fontWeight: 400,
+              fontSize: { xs: "1rem", md: "1.25rem" },
+            }}
+          >
+            Your marathon starts here
+          </Typography>
+        </Box>
+
+        {/* Glass Card */}
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 420,
+            animation: "cardSlideUp 0.6s ease-out 0.2s both",
+            mb: { xs: 4, md: 0 },
+          }}
+        >
         <Box
           sx={{
             p: { xs: 3, sm: 4 },
@@ -452,6 +512,7 @@ export default function RegisterPage() {
             </Box>
           </Stack>
         </Box>
+      </Box>
       </Box>
 
       {/* CSS Animations */}
