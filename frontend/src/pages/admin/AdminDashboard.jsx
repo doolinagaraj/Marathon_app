@@ -52,7 +52,7 @@ export default function AdminDashboard() {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    date: dayjs().add(7, "day").format("YYYY-MM-DD"),
+    date: dayjs().add(7, "day").format("YYYY-MM-DDTHH:mm"),
     startPoint: "",
     endPoint: "",
   });
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
     setForm({
       title: "",
       description: "",
-      date: dayjs().add(7, "day").format("YYYY-MM-DD"),
+      date: dayjs().add(7, "day").format("YYYY-MM-DDTHH:mm"),
       startPoint: "",
       endPoint: "",
     });
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
     setForm({
       title: ev.title,
       description: ev.description ?? "",
-      date: dayjs(ev.date).format("YYYY-MM-DD"),
+      date: dayjs(ev.date).format("YYYY-MM-DDTHH:mm"),
       startPoint: ev.startPoint,
       endPoint: ev.endPoint,
     });
@@ -348,7 +348,7 @@ export default function AdminDashboard() {
                       </Box>
 
                       <Typography variant="body2" color="text.secondary">
-                        {dayjs(ev.date).format("MMMM D, YYYY")}
+                        {dayjs(ev.date).format("MMMM D, YYYY HH:mm")}
                       </Typography>
 
                       <Typography variant="body2">{ev.description}</Typography>
@@ -557,7 +557,7 @@ export default function AdminDashboard() {
             />
             <TextField
               label="Date"
-              type="date"
+              type="datetime-local"
               value={form.date}
               onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
               InputLabelProps={{ shrink: true }}
